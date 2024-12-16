@@ -222,11 +222,18 @@ pub enum Poseidon2Mode {
     SQUEEZE,
 }
 
+#[derive(Clone)]
 pub struct Poseidon2Sponge {
     pub state: [u32; 16],
     pub buffer: Vec<u32>,
     pub mode: Poseidon2Mode,
     pub squeeze_index: usize,
+}
+
+impl Default for Poseidon2Sponge {
+    fn default() -> Self {
+        Self::new("Poseidon2 M31 sponge")
+    }
 }
 
 impl Poseidon2Sponge {

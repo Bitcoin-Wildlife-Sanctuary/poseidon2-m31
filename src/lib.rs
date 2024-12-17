@@ -259,15 +259,16 @@ impl Poseidon31Sponge {
         self.mode = Poseidon31Mode::ABSORB;
         self.squeeze_index = 0;
 
-        let l = self.buffer.len() + data.len();
+        let bl = self.buffer.len();
+        let l = bl + data.len();
 
         if l >= 8 {
-            self.state[0..self.buffer.len()].copy_from_slice(self.buffer.as_slice());
-            self.state[self.buffer.len()..8].copy_from_slice(&data[0..8 - self.buffer.len()]);
+            self.state[0..bl].copy_from_slice(self.buffer.as_slice());
+            self.state[bl..8].copy_from_slice(&data[0..8 - bl]);
             self.buffer.clear();
             poseidon2_permute(&mut self.state);
 
-            self.absorb(&data[8 - self.buffer.len()..]);
+            self.absorb(&data[8 - bl..]);
         } else {
             self.buffer.extend_from_slice(data);
         }

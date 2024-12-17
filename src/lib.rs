@@ -168,11 +168,11 @@ pub fn poseidon2_permute(state: &mut [u32; 16]) {
     }
 }
 
-pub struct Poseidon2Hasher {
+pub struct Poseidon31Hasher {
     pub buffer: Vec<u32>,
 }
 
-impl Poseidon2Hasher {
+impl Poseidon31Hasher {
     pub fn new() -> Self {
         Self { buffer: Vec::new() }
     }
@@ -217,26 +217,26 @@ impl Poseidon2Hasher {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Poseidon2Mode {
+pub enum Poseidon31Mode {
     ABSORB,
     SQUEEZE,
 }
 
 #[derive(Clone)]
-pub struct Poseidon2Sponge {
+pub struct Poseidon31Sponge {
     pub state: [u32; 16],
     pub buffer: Vec<u32>,
-    pub mode: Poseidon2Mode,
+    pub mode: Poseidon31Mode,
     pub squeeze_index: usize,
 }
 
-impl Default for Poseidon2Sponge {
+impl Default for Poseidon31Sponge {
     fn default() -> Self {
         Self::new("Poseidon2 M31 sponge")
     }
 }
 
-impl Poseidon2Sponge {
+impl Poseidon31Sponge {
     pub fn new(description: impl ToString) -> Self {
         let iv = compute_iv_values(
             format!("Poseidon2 M31 sponge for {}", description.to_string()).as_bytes(),
@@ -246,7 +246,7 @@ impl Poseidon2Sponge {
                 0, 0, 0, 0, 0, 0, 0, 0, iv[0], iv[1], iv[2], iv[3], iv[4], iv[5], iv[6], iv[7],
             ],
             buffer: Vec::new(),
-            mode: Poseidon2Mode::ABSORB,
+            mode: Poseidon31Mode::ABSORB,
             squeeze_index: 0,
         }
     }
@@ -256,7 +256,7 @@ impl Poseidon2Sponge {
             return;
         }
 
-        self.mode = Poseidon2Mode::ABSORB;
+        self.mode = Poseidon31Mode::ABSORB;
         self.squeeze_index = 0;
 
         let l = self.buffer.len() + data.len();
@@ -276,7 +276,7 @@ impl Poseidon2Sponge {
     pub fn squeeze(&mut self, size: usize) -> Vec<u32> {
         assert!(size > 0);
 
-        if self.mode == Poseidon2Mode::ABSORB && !self.buffer.is_empty() {
+        if self.mode == Poseidon31Mode::ABSORB && !self.buffer.is_empty() {
             for i in 0..8 {
                 self.state[i] = 0;
             }
@@ -287,7 +287,7 @@ impl Poseidon2Sponge {
             self.squeeze_index = 0;
         }
 
-        self.mode = Poseidon2Mode::SQUEEZE;
+        self.mode = Poseidon31Mode::SQUEEZE;
 
         let mut res = vec![];
 
@@ -313,9 +313,9 @@ impl Poseidon2Sponge {
     }
 }
 
-pub struct Poseidon2CRH;
+pub struct Poseidon31CRH;
 
-impl Poseidon2CRH {
+impl Poseidon31CRH {
     pub fn hash_fixed_length(data: &[u32]) -> [u32; 8] {
         let mut cur_layer = vec![];
         for chunk in data.chunks(16) {
@@ -366,7 +366,7 @@ impl Poseidon2CRH {
 
 #[cfg(test)]
 mod tests {
-    use crate::{modp, poseidon2_permute, Poseidon2CRH, Poseidon2Sponge};
+    use crate::{modp, poseidon2_permute, Poseidon31CRH, Poseidon31Sponge};
     use rand::Rng;
     use rand_chacha::rand_core::SeedableRng;
     use rand_chacha::ChaCha20Rng;
@@ -386,7 +386,7 @@ mod tests {
 
     #[test]
     fn test_absorb_and_squeeze() {
-        let mut sponge = Poseidon2Sponge::new("test");
+        let mut sponge = Poseidon31Sponge::new("test");
         let c1 = sponge.state[8..16].to_vec();
 
         sponge.absorb(&[1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -476,7 +476,7 @@ mod tests {
             b[i] = modp(prng.gen::<u32>());
         }
 
-        let _ = Poseidon2CRH::hash_fixed_length(&a);
-        let _ = Poseidon2CRH::hash_fixed_length(&b);
+        let _ = Poseidon31CRH::hash_fixed_length(&a);
+        let _ = Poseidon31CRH::hash_fixed_length(&b);
     }
 }

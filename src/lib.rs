@@ -252,7 +252,9 @@ impl Poseidon2Sponge {
     }
 
     pub fn absorb(&mut self, data: &[u32]) {
-        assert!(!data.is_empty());
+        if data.is_empty() {
+            return;
+        }
 
         self.mode = Poseidon2Mode::ABSORB;
         self.squeeze_index = 0;

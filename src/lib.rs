@@ -299,7 +299,7 @@ impl Poseidon31Sponge {
             let need = size - res.len();
             let ready = 8 - self.squeeze_index;
 
-            if ready > need {
+            if ready >= need {
                 res.extend_from_slice(&self.state[self.squeeze_index..self.squeeze_index + need]);
                 self.squeeze_index += need;
             } else {

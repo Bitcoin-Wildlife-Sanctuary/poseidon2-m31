@@ -220,6 +220,7 @@ impl Poseidon31Hasher {
 pub enum Poseidon31Mode {
     ABSORB,
     SQUEEZE,
+    INITIALIZED
 }
 
 #[derive(Clone)]
@@ -246,7 +247,7 @@ impl Poseidon31Sponge {
                 0, 0, 0, 0, 0, 0, 0, 0, iv[0], iv[1], iv[2], iv[3], iv[4], iv[5], iv[6], iv[7],
             ],
             buffer: Vec::new(),
-            mode: Poseidon31Mode::ABSORB,
+            mode: Poseidon31Mode::INITIALIZED,
             squeeze_index: 0,
         }
     }
@@ -286,6 +287,8 @@ impl Poseidon31Sponge {
             poseidon2_permute(&mut self.state);
 
             self.squeeze_index = 0;
+        } else if self.mode == Poseidon31Mode::INITIALIZED {
+            poseidon2_permute(&mut self.state);
         }
 
         self.mode = Poseidon31Mode::SQUEEZE;

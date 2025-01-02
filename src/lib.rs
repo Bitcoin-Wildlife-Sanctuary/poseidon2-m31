@@ -322,18 +322,11 @@ pub struct Poseidon31CRH;
 impl Poseidon31CRH {
     pub fn hash_fixed_length(data: &[u32]) -> [u32; 8] {
         let mut cur_layer = vec![];
-        for chunk in data.chunks(16) {
-            let mut cur = [0u32; 16];
-            cur[0..chunk.len()].copy_from_slice(chunk);
-
-            poseidon2_permute(&mut cur);
-
-            for i in 0..std::cmp::min(8, chunk.len()) {
-                cur[i] = addmod(cur[i], chunk[i]);
-            }
-
+        for chunk in data.chunks(8) {
+            let mut chunk = chunk.to_vec();
+            chunk.resize(8, 0);
             cur_layer.push([
-                cur[0], cur[1], cur[2], cur[3], cur[4], cur[5], cur[6], cur[7],
+                chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
             ]);
         }
 
@@ -482,5 +475,25 @@ mod tests {
 
         let _ = Poseidon31CRH::hash_fixed_length(&a);
         let _ = Poseidon31CRH::hash_fixed_length(&b);
+    }
+
+    #[test]
+    fn test_short_commit() {
+        let mut prng = ChaCha20Rng::seed_from_u64(0);
+
+        let mut a = [0u32; 5];
+        for i in 0..5 {
+            a[i] = modp(prng.gen::<u32>());
+        }
+
+        let computed = Poseidon31CRH::hash_fixed_length(&a);
+        assert_eq!(computed[0], a[0]);
+        assert_eq!(computed[1], a[1]);
+        assert_eq!(computed[2], a[2]);
+        assert_eq!(computed[3], a[3]);
+        assert_eq!(computed[4], a[4]);
+        assert_eq!(computed[5], 0);
+        assert_eq!(computed[6], 0);
+        assert_eq!(computed[7], 0);
     }
 }
